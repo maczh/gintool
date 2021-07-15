@@ -82,7 +82,7 @@ func SetRequestLogger() gin.HandlerFunc {
 
 		accessLog := "|" + c.Request.Method + "|" + postLog.Controller + "|" + c.ClientIP() + "|" + endTime.Format("2006-01-02 15:04:05.012") + "|" + fmt.Sprintf("%vms", endTime.UnixNano()/1e6-startTime.UnixNano()/1e6)
 		logs.Debug(accessLog)
-		logs.Debug("请求参数:{}", postLog.RequestId, params)
+		logs.Debug("请求参数:{}", params)
 		logs.Debug("接口返回:{}", result)
 
 		if mgconfig.GetConfigString("go.log.req") != "" {

@@ -1,4 +1,4 @@
-package result
+package mgresult
 
 import "strconv"
 
