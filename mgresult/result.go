@@ -27,6 +27,14 @@ func Success(d interface{}) *Result {
 	return result
 }
 
+func SuccessWithMsg(msg string, d interface{}) *Result {
+	result := new(Result)
+	result.Data = d
+	result.Status = 1
+	result.Msg = msg
+	return result
+}
+
 func SuccessWithPage(d interface{}, count, index, size, total int) *Result {
 	result := new(Result)
 	result.Data = d
