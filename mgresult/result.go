@@ -6,7 +6,7 @@ import "strconv"
 通用返回结果类
 */
 type Result struct {
-	Status int32       `json:"status" bson:"status"`
+	Status int         `json:"status" bson:"status"`
 	Msg    string      `json:"msg" bson:"msg"`
 	Data   interface{} `json:"data" bson:"data"`
 	Page   *ResultPage `json:"page" bson:"page"`
@@ -19,33 +19,34 @@ type ResultPage struct {
 	Total int `json:"total"` //总记录数
 }
 
-func Success(d interface{}) *Result {
-	result := new(Result)
-	result.Data = d
-	result.Status = 1
-	result.Msg = "成功"
+func Success(d interface{}) Result {
+	return Result{
+		Status: 1,
+		Msg:    "成功",
+		Data:   d,
+	}
+}
+
+func SuccessWithPage(d interface{}, count, index, size, total int) Result {
+	result := Result{
+		Status: 1,
+		Msg:    "成功",
+		Data:   d,
+		Page: &ResultPage{
+			Count: count,
+			Index: index,
+			Size:  size,
+			Total: total,
+		},
+	}
 	return result
 }
 
-func SuccessWithPage(d interface{}, count, index, size, total int) *Result {
-	result := new(Result)
-	result.Data = d
-	result.Status = 1
-	result.Msg = "成功"
-	page := new(ResultPage)
-	page.Count = count
-	page.Index = index
-	page.Size = size
-	page.Total = total
-	result.Page = page
-	return result
-}
-
-func Error(s int32, m string) *Result {
-	result := new(Result)
-	result.Status = s
-	result.Msg = m
-	return result
+func Error(s int, m string) Result {
+	return Result{
+		Status: s,
+		Msg:    m,
+	}
 }
 
 type AppResult struct {
