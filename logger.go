@@ -77,7 +77,7 @@ func SetRequestLogger() gin.HandlerFunc {
 
 		// 日志格式
 		params := utils.GinParamMap(c)
-		if body != "" && len(params) == 0 {
+		if body != "" {
 			params["body"] = body
 		}
 		postLog := new(PostLog)
