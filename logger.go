@@ -62,6 +62,7 @@ func SetRequestLogger() gin.HandlerFunc {
 
 		responseBody := bodyLogWriter.body.String()
 
+		var req map[string]interface{}
 		var result map[string]interface{}
 
 		// 日志格式
@@ -81,10 +82,13 @@ func SetRequestLogger() gin.HandlerFunc {
 
 		// 日志格式
 		var params interface{}
-		if strings.Contains(c.ContentType() , "application/json") || strings.Contains(c.ContentType() , "application/xml") {
-			params = body
+		if strings.Contains(c.ContentType() , "application/json") {
+			utils.FromJSON(body,&req)
+			params = req
 		}else if strings.Contains(c.ContentType(),"x-www-form-urlencoded"){
 			params = utils.GinParamMap(c)
+		}else {
+			return
 		}
 		postLog := new(PostLog)
 		postLog.ID = bson.NewObjectId()
