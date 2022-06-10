@@ -6,7 +6,7 @@ import "strconv"
 通用返回结果类
 */
 type Result struct {
-	Status int32       `json:"status" bson:"status"`
+	Status int       `json:"status" bson:"status"`
 	Msg    string      `json:"msg" bson:"msg"`
 	Data   interface{} `json:"data" bson:"data"`
 	Page   *ResultPage `json:"page" bson:"page"`
@@ -54,7 +54,7 @@ func SuccessWithPage(d interface{}, count, index, size, total int) Result {
 	return result
 }
 
-func Error(s int32, m string) Result {
+func Error(s int, m string) Result {
 	result := Result{
 		Status: s,
 		Msg:    m,
