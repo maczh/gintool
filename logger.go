@@ -23,6 +23,7 @@ type bodyLogWriter struct {
 }
 
 var accessChannel = make(chan string, 100)
+var collection string
 
 func (w bodyLogWriter) Write(b []byte) (int, error) {
 	w.body.Write(b)
@@ -36,6 +37,9 @@ func (w bodyLogWriter) WriteString(s string) (int, error) {
 
 func SetRequestLogger() gin.HandlerFunc {
 
+	if collection == "" {
+		collection = mgconfig.GetConfigString("go.log.req")
+	}
 	go handleAccessChannel()
 
 	return func(c *gin.Context) {
@@ -61,7 +65,7 @@ func SetRequestLogger() gin.HandlerFunc {
 		var result map[string]interface{}
 
 		// 日志格式
-		if strings.Contains(c.Request.RequestURI, "/docs") {
+		if strings.Contains(c.Request.RequestURI, "/docs") || c.Request.RequestURI == "/" {
 			return
 		}
 
@@ -76,30 +80,30 @@ func SetRequestLogger() gin.HandlerFunc {
 		endTime := time.Now()
 
 		// 日志格式
-		params := utils.GinParamMap(c)
-		if body != "" {
-			params["body"] = body
+		var params interface{}
+		if strings.Contains(c.ContentType() , "application/json") || strings.Contains(c.ContentType() , "application/xml") {
+			params = body
+		}else if strings.Contains(c.ContentType(),"x-www-form-urlencoded"){
+			params = utils.GinParamMap(c)
 		}
 		postLog := new(PostLog)
 		postLog.ID = bson.NewObjectId()
 		postLog.Time = startTime.Format("2006-01-02 15:04:05")
-		if strings.Contains(c.Request.RequestURI, "?") {
-			postLog.Controller = c.Request.RequestURI[0:strings.Index(c.Request.RequestURI, "?")]
-		} else {
-			postLog.Controller = c.Request.RequestURI
-		}
+		postLog.Uri = c.Request.RequestURI
+		postLog.Method = c.Request.Method
 		postLog.RequestId = mgtrace.GetRequestId()
+		postLog.ContentType = c.ContentType()
 		postLog.Requestparam = params
 		postLog.Responsetime = endTime.Format("2006-01-02 15:04:05")
 		postLog.Responsemap = result
 		postLog.TTL = int(endTime.UnixNano()/1e6 - startTime.UnixNano()/1e6)
 
-		accessLog := "|" + c.Request.Method + "|" + postLog.Controller + "|" + c.ClientIP() + "|" + endTime.Format("2006-01-02 15:04:05.012") + "|" + fmt.Sprintf("%vms", endTime.UnixNano()/1e6-startTime.UnixNano()/1e6)
+		accessLog := "|" + c.Request.Method + "|" + postLog.Uri + "|" + c.ClientIP() + "|" + endTime.Format("2006-01-02 15:04:05.012") + "|" + fmt.Sprintf("%vms", endTime.UnixNano()/1e6-startTime.UnixNano()/1e6)
 		logs.Debug(accessLog)
 		logs.Debug("请求参数:{}", params)
 		logs.Debug("接口返回:{}", result)
 
-		if mgconfig.GetConfigString("go.log.req") != "" {
+		if collection != "" {
 			accessChannel <- utils.ToJSON(postLog)
 		}
 	}
@@ -109,10 +113,16 @@ func handleAccessChannel() {
 	for accessLog := range accessChannel {
 		var postLog PostLog
 		json.Unmarshal([]byte(accessLog), &postLog)
-		err := mgconfig.Mgo.C(mgconfig.GetConfigString("go.log.req")).Insert(postLog)
+		mgo,err := mgconfig.GetMongoConnection()
+		if err != nil {
+			logs.Error("MongoDB连接错误:{}",err.Error())
+			continue
+		}
+		err = mgo.C(collection).Insert(postLog)
 		if err != nil {
 			logs.Error("MongoDB写入错误:" + err.Error())
 		}
+		mgconfig.ReturnMongoConnection(mgo)
 	}
 	return
 }

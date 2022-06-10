@@ -19,40 +19,48 @@ type ResultPage struct {
 	Total int `json:"total"` //总记录数
 }
 
-func Success(d interface{}) *Result {
-	result := new(Result)
-	result.Data = d
-	result.Status = 1
-	result.Msg = "成功"
+func Success(d interface{}) Result {
+	result := Result{
+		Status: 1,
+		Msg:    "成功",
+		Data:   d,
+		Page:   nil,
+	}
 	return result
 }
 
-func SuccessWithMsg(msg string, d interface{}) *Result {
-	result := new(Result)
-	result.Data = d
-	result.Status = 1
-	result.Msg = msg
+func SuccessWithMsg(msg string, d interface{}) Result {
+	result := Result{
+		Status: 1,
+		Msg:    msg,
+		Data:   d,
+		Page:   nil,
+	}
 	return result
 }
 
-func SuccessWithPage(d interface{}, count, index, size, total int) *Result {
-	result := new(Result)
-	result.Data = d
-	result.Status = 1
-	result.Msg = "成功"
+func SuccessWithPage(d interface{}, count, index, size, total int) Result {
 	page := new(ResultPage)
 	page.Count = count
 	page.Index = index
 	page.Size = size
 	page.Total = total
-	result.Page = page
+	result := Result{
+		Status: 1,
+		Msg:    "成功",
+		Data:   d,
+		Page:   page,
+	}
 	return result
 }
 
-func Error(s int32, m string) *Result {
-	result := new(Result)
-	result.Status = s
-	result.Msg = m
+func Error(s int32, m string) Result {
+	result := Result{
+		Status: s,
+		Msg:    m,
+		Data:   nil,
+		Page:   nil,
+	}
 	return result
 }
 
