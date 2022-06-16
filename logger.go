@@ -1,6 +1,5 @@
 package gintool
 
-import "C"
 import (
 	"bytes"
 	"encoding/json"
@@ -82,12 +81,12 @@ func SetRequestLogger() gin.HandlerFunc {
 
 		// 日志格式
 		var params interface{}
-		if strings.Contains(c.ContentType() , "application/json") {
-			utils.FromJSON(body,&req)
+		if strings.Contains(c.ContentType(), "application/json") {
+			utils.FromJSON(body, &req)
 			params = req
-		}else if strings.Contains(c.ContentType(),"x-www-form-urlencoded"){
+		} else if strings.Contains(c.ContentType(), "x-www-form-urlencoded") {
 			params = utils.GinParamMap(c)
-		}else {
+		} else {
 			return
 		}
 		postLog := new(PostLog)
@@ -117,9 +116,9 @@ func handleAccessChannel() {
 	for accessLog := range accessChannel {
 		var postLog PostLog
 		json.Unmarshal([]byte(accessLog), &postLog)
-		mgo,err := mgconfig.GetMongoConnection()
+		mgo, err := mgconfig.GetMongoConnection()
 		if err != nil {
-			logs.Error("MongoDB连接错误:{}",err.Error())
+			logs.Error("MongoDB连接错误:{}", err.Error())
 			continue
 		}
 		err = mgo.C(collection).Insert(postLog)
