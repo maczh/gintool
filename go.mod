@@ -7,7 +7,7 @@ require (
 	github.com/maczh/logs v1.0.3
 	github.com/maczh/mgconfig v1.1.5
 	github.com/maczh/mgtrace v1.0.1
-	github.com/maczh/utils v1.0.8
+	github.com/maczh/utils v1.0.9
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 )
 
