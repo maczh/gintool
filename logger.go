@@ -84,9 +84,9 @@ func SetRequestLogger() gin.HandlerFunc {
 		if strings.Contains(c.ContentType(), "application/json") {
 			utils.FromJSON(body, &req)
 			params = req
-		} else if strings.Contains(c.ContentType(), "x-www-form-urlencoded") {
+		} else if strings.Contains(c.ContentType(), "x-www-form-urlencoded") || strings.Contains(c.ContentType(), "multipart/form-data") {
 			params = utils.GinParamMap(c)
-		} else {
+		} else if c.Request.Method != "GET" && c.Request.Method != "DELETE" {
 			return
 		}
 		postLog := new(PostLog)
