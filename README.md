@@ -26,8 +26,11 @@ go get -u github.com/maczh/gintool
 ```yaml
 go:
   config:
-    used: mongodb,...
+    used: mongodb,kafka,...
   log:
     level: debug
     req: MyappRequestLog
+    kafka:
+      use: true      #允许将日志发送到kafka，前提是配置了kafka连接
+      topic: MyappRequestLog    #发送给kafka的主题
 ```

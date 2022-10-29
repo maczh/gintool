@@ -96,6 +96,12 @@ func SetRequestLogger() gin.HandlerFunc {
 		postLog.Method = c.Request.Method
 		postLog.RequestId = mgtrace.GetRequestId()
 		postLog.ContentType = c.ContentType()
+		postLog.RequestHeader = getHeaders(c)
+		ip := c.Request.Header.Get("X-Forward-For")
+		if ip == "" {
+			ip = c.ClientIP()
+		}
+		postLog.ClientIP = ip
 		postLog.Requestparam = params
 		postLog.Responsetime = endTime.Format("2006-01-02 15:04:05")
 		postLog.Responsemap = result
@@ -106,7 +112,7 @@ func SetRequestLogger() gin.HandlerFunc {
 		logs.Debug("请求参数:{}", params)
 		logs.Debug("接口返回:{}", result)
 
-		if collection != "" {
+		if collection != "" || mgconfig.GetConfigString("go.log.kafka.use") == "true" {
 			accessChannel <- utils.ToJSON(postLog)
 		}
 	}
@@ -114,6 +120,15 @@ func SetRequestLogger() gin.HandlerFunc {
 
 func handleAccessChannel() {
 	for accessLog := range accessChannel {
+		if mgconfig.GetConfigString("go.log.kafka.use") == "true" && mgconfig.GetConfigString("go.log.kafka.topic") != "" && strings.Contains(mgconfig.GetConfigString("go.config.used"), "kafka") {
+			err := mgconfig.Kafka.Send(mgconfig.GetConfigString("go.log.kafka.topic"), accessLog)
+			if err != nil {
+				logs.Error("接口日志发送到kafka失败:{}", err.Error())
+			}
+		}
+		if collection == "" {
+			continue
+		}
 		var postLog PostLog
 		json.Unmarshal([]byte(accessLog), &postLog)
 		mgo, err := mgconfig.GetMongoConnection()
@@ -128,4 +143,12 @@ func handleAccessChannel() {
 		mgconfig.ReturnMongoConnection(mgo)
 	}
 	return
+}
+
+func getHeaders(c *gin.Context) map[string]string {
+	headers := make(map[string]string)
+	for k, v := range c.Request.Header {
+		headers[k] = v[0]
+	}
+	return headers
 }
