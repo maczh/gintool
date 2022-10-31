@@ -124,9 +124,12 @@ func SetRequestLogger() gin.HandlerFunc {
 func handleAccessChannel() {
 	for accessLog := range accessChannel {
 		if mgconfig.GetConfigString("go.log.kafka.use") == "true" && mgconfig.GetConfigString("go.log.kafka.topic") != "" && strings.Contains(mgconfig.GetConfigString("go.config.used"), "kafka") {
-			err := mgconfig.Kafka.Send(mgconfig.GetConfigString("go.log.kafka.topic"), accessLog)
-			if err != nil {
-				logs.Error("接口日志发送到kafka失败:{}", err.Error())
+			topics := strings.Split(mgconfig.GetConfigString("go.log.kafka.topic"), ",")
+			for _, topic := range topics {
+				err := mgconfig.Kafka.Send(topic, accessLog)
+				if err != nil {
+					logs.Error("接口日志发送到kafka的{}主题失败:{}", topic, err.Error())
+				}
 			}
 		}
 		if collection == "" {

@@ -32,5 +32,5 @@ go:
     req: MyappRequestLog
     kafka:
       use: true      #允许将日志发送到kafka，前提是配置了kafka连接
-      topic: MyappRequestLog    #发送给kafka的主题
+      topic: MyappRequestLog    #发送给kafka的主题，可支持多个主题，以逗号分隔
 ```
